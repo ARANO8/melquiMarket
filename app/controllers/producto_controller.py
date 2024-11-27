@@ -86,6 +86,9 @@ def actualizar_producto(db: Session, producto_id: int, producto_actualizado: Pro
 
 # Función para actualizar el stock (incrementar cantidad)
 def actualizar_stock_producto(db: Session, producto_id: int, cantidad: int, motivo: str):
+    if cantidad <= 0:
+        raise HTTPException(status_code=400, detail="La cantidad debe ser un valor positivo.")
+
     producto = db.query(Producto).filter(Producto.idProducto == producto_id).first()
     if not producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
@@ -113,6 +116,9 @@ def actualizar_stock_producto(db: Session, producto_id: int, cantidad: int, moti
 
 # Función para decrementar la cantidad del producto
 def decrementar_cantidad_producto(db: Session, producto_id: int, cantidad: int, motivo: str):
+    if cantidad <= 0:
+        raise HTTPException(status_code=400, detail="La cantidad debe ser un valor positivo.")
+    
     producto = db.query(Producto).filter(Producto.idProducto == producto_id).first()
     if not producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
@@ -139,6 +145,9 @@ def decrementar_cantidad_producto(db: Session, producto_id: int, cantidad: int, 
 
 # Función para reemplazar la cantidad del producto
 def reemplazar_cantidad_producto(db: Session, producto_id: int, cantidad: int, motivo: str):
+    if cantidad < 0:
+        raise HTTPException(status_code=400, detail="La cantidad debe ser un valor positivo.")
+    
     producto = db.query(Producto).filter(Producto.idProducto == producto_id).first()
     if not producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
