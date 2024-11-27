@@ -7,6 +7,8 @@ from app.models.historial_inventario import HistorialInventario
 from app.models.producto import Producto
 from app.schemas.producto import ProductoCreate, ProductoUpdate, ProductoUpdateAll
 
+LIMITE_REABASTECIMIENTO = 1000
+
 # Función para crear un nuevo producto
 def create_producto(db: Session, producto: ProductoCreate):
     db_producto = Producto(
@@ -37,11 +39,14 @@ def create_producto(db: Session, producto: ProductoCreate):
 
 # Función para obtener productos
 def get_productos(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(Producto).offset(skip).limit(limit).all()
+    return db.query(Producto).filter(Producto.estado == True).offset(skip).limit(limit).all()
 
 # Función para obtener un producto por ID
 def get_producto(db: Session, producto_id: int):
-    return db.query(Producto).filter(Producto.idProducto == producto_id).first()
+    producto = db.query(Producto).filter(Producto.idProducto == producto_id, Producto.estado == True).first()
+    if not producto:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return producto
 
 # Función para actualizar un producto
 def actualizar_producto(db: Session, producto_id: int, producto_actualizado: ProductoUpdateAll):
@@ -88,6 +93,9 @@ def actualizar_producto(db: Session, producto_id: int, producto_actualizado: Pro
 def actualizar_stock_producto(db: Session, producto_id: int, cantidad: int, motivo: str):
     if cantidad <= 0:
         raise HTTPException(status_code=400, detail="La cantidad debe ser un valor positivo.")
+    
+    if cantidad > LIMITE_REABASTECIMIENTO:
+        raise HTTPException(status_code=400, detail=f"La cantidad máxima permitida para reabastecimiento es de {LIMITE_REABASTECIMIENTO} unidades.")
 
     producto = db.query(Producto).filter(Producto.idProducto == producto_id).first()
     if not producto:
@@ -148,6 +156,9 @@ def reemplazar_cantidad_producto(db: Session, producto_id: int, cantidad: int, m
     if cantidad < 0:
         raise HTTPException(status_code=400, detail="La cantidad debe ser un valor positivo.")
     
+    if cantidad > LIMITE_REABASTECIMIENTO:
+        raise HTTPException(status_code=400, detail=f"La cantidad máxima permitida para reabastecimiento es de {LIMITE_REABASTECIMIENTO} unidades.")
+
     producto = db.query(Producto).filter(Producto.idProducto == producto_id).first()
     if not producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
@@ -170,7 +181,7 @@ def reemplazar_cantidad_producto(db: Session, producto_id: int, cantidad: int, m
     db.refresh(producto)
     return producto
 
-def eliminar_producto(db: Session, producto_id: int):
+def eliminar_producto(db: Session, producto_id: int, motivo: str):
     producto = db.query(Producto).filter(Producto.idProducto == producto_id).first()
     if not producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
@@ -178,15 +189,14 @@ def eliminar_producto(db: Session, producto_id: int):
     # Registrar la eliminación en el historial
     historial = HistorialInventario(
         idProducto=producto.idProducto,
-        motivo="Eliminación de producto",
+        motivo= motivo,
         cantidad_cambio=None,
         fecha_cambio=datetime.utcnow()
     )
     db.add(historial)
+    producto.estado = False
     db.commit()
-
-    db.delete(producto)
-    db.commit()
+    db.refresh(producto)
     return {"detail": "Producto eliminado exitosamente"}
 
 

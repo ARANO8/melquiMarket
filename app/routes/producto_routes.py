@@ -68,7 +68,12 @@ def editar_producto(
 # Endpoint para eliminar un producto (solo administradores)
 @router.delete("/productos/{producto_id}/eliminar", response_model=dict)
 def eliminar_producto_endpoint(producto_id: int, db: Session = Depends(get_db), current_user: Usuario = Depends(get_current_admin)):
-    return eliminar_producto(db=db, producto_id=producto_id)
+    return eliminar_producto(
+        db=db,
+        producto_id=producto_id,
+        motivo=f"Producto eliminado por {current_user.nombre} ({current_user.email})"
+        )
+        
 
 # Endpoint para agregar categorías a un producto
 @router.post("/productos/{producto_id}/categorias/{categoria_id}", response_model=Producto)
@@ -89,7 +94,12 @@ def add_categoria_to_producto(producto_id: int, categoria_id: int, db: Session =
 # Endpoint para registrar devolucion de un producto
 @router.post("/devoluciones/", response_model=Producto)
 def registrar_devolucion(producto_id: int, cantidad: int, db: Session = Depends(get_db),current_user: Usuario = Depends(get_current_user)):
-    producto = actualizar_stock_producto(db=db, producto_id=producto_id, cantidad=cantidad, motivo=f"Devolucion realizada por {current_user.nombre} ({current_user.email})")
+    producto = actualizar_stock_producto(
+        db=db,
+        producto_id=producto_id,
+        cantidad=cantidad,
+        motivo=f"Devolucion realizada por {current_user.nombre} ({current_user.email})"
+        )
     return producto
 
 # Endpoint para registrar el reabastecimiento de un producto (solo administrador)

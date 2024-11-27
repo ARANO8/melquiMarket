@@ -1,6 +1,6 @@
 # app/models/producto.py
 
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Boolean, Column, Integer, String, Float
 from sqlalchemy.orm import relationship
 from app.config import Base
 from app.models.producto_categoria import producto_categoria
@@ -13,7 +13,7 @@ class Producto(Base):
     descripcion = Column(String)
     precio = Column(Float)
     cantidad = Column(Integer)
-    estado = Column(String)
+    estado = Column(Boolean, default=True)
     imagen = Column(String)
     nivel_alerta_stock = Column(Integer)
 

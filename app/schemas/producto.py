@@ -7,7 +7,7 @@ class ProductoBase(BaseModel):
     descripcion: str
     precio: float
     cantidad: int
-    estado: str
+    estado: bool
     imagen: str | None = None
     nivel_alerta_stock: int
 
@@ -27,7 +27,7 @@ class ProductoUpdateAll(BaseModel):
     descripcion: str
     precio: float
     cantidad: int
-    estado: str
+    estado: bool
     imagen: str | None = None
     nivel_alerta_stock: int
 
