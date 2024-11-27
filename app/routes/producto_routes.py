@@ -86,23 +86,28 @@ def add_categoria_to_producto(producto_id: int, categoria_id: int, db: Session =
     db.refresh(producto)
     return producto
 
-# Endpoint para incrementar la cantidad del producto
-@router.put("/productos/{producto_id}/incrementar", response_model=Producto)
-def incrementar_cantidad(producto_id: int, cantidad: int, db: Session = Depends(get_db),current_user: Usuario = Depends(get_current_user)):
-    producto = actualizar_stock_producto(db=db, producto_id=producto_id, cantidad=cantidad, motivo="Incremento de stock")
+# Endpoint para registrar devolucion de un producto
+@router.post("/devoluciones/", response_model=Producto)
+def registrar_devolucion(producto_id: int, cantidad: int, db: Session = Depends(get_db),current_user: Usuario = Depends(get_current_user)):
+    producto = actualizar_stock_producto(db=db, producto_id=producto_id, cantidad=cantidad, motivo=f"Devolucion realizada por {current_user.nombre} ({current_user.email})")
     return producto
 
-# Endpoint para decrementar la cantidad del producto
-@router.put("/productos/{producto_id}/decrementar", response_model=Producto)
-def decrementar_cantidad(producto_id: int, cantidad: int, db: Session = Depends(get_db), 
-    current_user: Usuario = Depends(get_current_user)):
-    producto = decrementar_cantidad_producto(db=db, producto_id=producto_id, cantidad=cantidad)
+# Endpoint para registrar el reabastecimiento de un producto (solo administrador)
+@router.post("/reabastecimientos/", response_model=Producto)
+def registrar_reabastecimiento(producto_id: int, cantidad: int, db: Session = Depends(get_db),current_user: Usuario = Depends(get_current_admin)):
+    producto = actualizar_stock_producto(db=db, producto_id=producto_id, cantidad=cantidad, motivo=f"Rebastecimiento realizada por {current_user.nombre} ({current_user.email})")
     return producto
 
-# Endpoint para reemplazar la cantidad del producto
+# Endpoint para registrar una venta de un producto
+@router.post("/ventas/", response_model=Producto)
+def realizar_venta(producto_id: int, cantidad: int, db: Session = Depends(get_db),current_user: Usuario = Depends(get_current_user)):
+    producto = decrementar_cantidad_producto(db=db, producto_id=producto_id, cantidad=cantidad, motivo=f"Venta realizada por {current_user.nombre} ({current_user.email})")
+    return producto
+
+# Endpoint para reemplazar la cantidad del producto (solo administrador)
 @router.put("/productos/{producto_id}/reemplazar", response_model=Producto)
 def reemplazar_cantidad(producto_id: int, cantidad: int, db: Session = Depends(get_db), current_user: Usuario = Depends(get_current_admin)):
-    producto = reemplazar_cantidad_producto(db=db, producto_id=producto_id, cantidad=cantidad)
+    producto = reemplazar_cantidad_producto(db=db, producto_id=producto_id, cantidad=cantidad, motivo=f"Reemplazo de cantidad realizada por {current_user.nombre} ({current_user.email})")
     return producto
 
 # Endpoint para obtener productos con bajo stock
