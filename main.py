@@ -9,7 +9,7 @@ app = FastAPI()
 
 # Incluir los routers de autenticación, usuarios, productos, y categorías
 app.include_router(auth_router, prefix="/api/v1", tags=["Autenticación"])
-app.include_router(usuario_router, prefix="/api/v1/usuarios", tags=["Usuarios"])
+app.include_router(usuario_router, prefix="/api/v1", tags=["Usuarios"])
 app.include_router(producto_router, prefix="/api/v1", tags=["Productos"])
 app.include_router(categoria_router, prefix="/api/v1", tags=["Categorías"])
 
